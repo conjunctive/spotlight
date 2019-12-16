@@ -1,0 +1,69 @@
+* Spotlight
+  Functional references for Common Lisp
+
+** Getting Started
+   Clone the package into your local-projects directory.
+   #+BEGIN_SRC sh
+$ git clone https://github.com/conjunctive/spotlight ~/quicklisp/local-projects/spotlight
+   #+END_SRC
+
+   Start a Common Lisp REPL (optionally using rlwrap to maintain history).
+   #+BEGIN_SRC sh
+$ rlwrap sbcl
+   #+END_SRC
+
+   Load the project.
+   #+BEGIN_SRC lisp
+(ql:quickload :spotlight)
+   #+END_SRC
+
+   Run the test suite.
+   #+BEGIN_SRC lisp
+(asdf:test-system :spotlight)
+   #+END_SRC
+
+** Examples
+   Retrieve the third value from the list, only if it is an odd number.
+   #+BEGIN_SRC lisp
+     (sl:focus (alexandria:compose (sl:nth- 2) (sl:passes #'oddp))
+               (list 1 2 3 4))
+     ;; 3
+   #+END_SRC
+
+   Focus on the nested list, drop the head, and increment the second element.
+   #+BEGIN_SRC lisp
+     (sl:over (alexandria:compose (sl:nth- 1) sl:tail (sl:nth- 1))
+              (lambda (x) (+ x 1))
+              (list 1 (list 2 2 2) 4))
+     ;; (1 (2 3) 4)
+   #+END_SRC
+
+   Mutably increment the fourth element of a list, traversing two hash-tables.
+   #+BEGIN_SRC lisp
+     ;; Create two hash-tables
+     (defvar *ht1* (make-hash-table))
+     (defvar *ht2* (make-hash-table))
+
+     ;; In the first hash-table, associate the key :A to the second hash-table
+     ;; In the second hash-table, associate the key :B to a list
+     (setf (gethash :A *ht1*) *ht2*
+           (gethash :B *ht2*) (list 1 2 3 3 5))
+
+     ;; Perform a mutation on the fourth element of the list
+     (sl:over (alexandria:compose (sl:key! :A) (sl:key! :B) (sl:nth! 3))
+              (lambda (x) (+ x 1))
+              *ht1*)
+
+     ;; Traverse the two hash-tables to view our result
+     (sl:focus (alexandria:compose (sl:key :A) (sl:key :B))
+               *ht1*)
+
+     ;; (1 2 3 4 5)
+   #+END_SRC
+
+** License
+   This project is licensed under the GNU Affero General Public License version 3.
+
+** Acknowledgments
+   This project is a port of the Clojure library [[https://github.com/funcool/lentes][Lentes]].
+   Spotlight differs from [[https://github.com/funcool/lentes][Lentes]] in that it is more monomorphic and prefers mutation.
