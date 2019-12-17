@@ -2,7 +2,7 @@
   :author "Conjunctive"
   :maintainer "Conjunctive"
   :license "AGPL-3.0"
-  :version "0.1.0"
+  :version "0.2.0"
   :homepage "https://github.com/conjunctive/spotlight"
   :source-control (:git "git@github.com:conjunctive/spotlight.git")
   :description "Test system for Spotlight"

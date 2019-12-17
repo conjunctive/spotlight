@@ -24,7 +24,9 @@
                 #:snd
                 #:tail
                 #:key!
-                #:key))
+                #:key
+                #:key?!
+                #:key?))
 
 (in-package :spotlight-test)
 
@@ -204,6 +206,42 @@
         2)
     (is (focus (compose (key :X) (key :Y) fst (key :Z)) htx)
         (list 1))))
+
+(subtest "Mutably increment number, explicitly traversing an alist, plist, and hash-table"
+  (let* ((ht (alist-hash-table (list (cons :G 7) (cons :H 7) (cons :I 9))))
+         (pl (list :D 4 :E ht :F 6))
+         (al (list (cons :A 1) (cons :B 2) (cons :C pl)))
+         (fn (lambda (x) (+ x 1)))
+         (l  (compose (key! :C :alist) (key! :E :plist) (key! :H :hash-table))))
+    (over l fn al)
+    (is 8 (focus l al))))
+
+(subtest "Immutably increment number, explicitly traversing an alist, plist, and hash-table"
+  (let* ((ht (alist-hash-table (list (cons :G 7) (cons :H 7) (cons :I 9))))
+         (pl (list :D 4 :E ht :F 6))
+         (al (list (cons :A 1) (cons :B 2) (cons :C pl)))
+         (fn (lambda (x) (+ x 1)))
+         (l  (compose (key :C :alist) (key :E :plist) (key :H :hash-table))))
+    (is 8 (focus l (over l fn al)))
+    (is 7 (focus l al))))
+
+(subtest "Mutably increment number, implicitly traversing an alist, plist, and hash-table"
+  (let* ((ht (alist-hash-table (list (cons :G 7) (cons :H 7) (cons :I 9))))
+         (pl (list :D 4 :E ht :F 6))
+         (al (list (cons :A 1) (cons :B 2) (cons :C pl)))
+         (fn (lambda (x) (+ x 1)))
+         (l  (compose (key?! :C) (key?! :E) (key?! :H))))
+    (over l fn al)
+    (is 8 (focus l al))))
+
+(subtest "Immutably increment number, implicitly traversing an alist, plist, and hash-table"
+  (let* ((ht (alist-hash-table (list (cons :G 7) (cons :H 7) (cons :I 9))))
+         (pl (list :D 4 :E ht :F 6))
+         (al (list (cons :A 1) (cons :B 2) (cons :C pl)))
+         (fn (lambda (x) (+ x 1)))
+         (l  (compose (key? :C) (key? :E) (key? :H))))
+    (is 8 (focus l (over l fn al)))
+    (is 7 (focus l al))))
 
 (subtest "Convert an alist to a hash-table, add a new value, return an alist"
   (let ((xs '((:A . 1) (:B . 2)))

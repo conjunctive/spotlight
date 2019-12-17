@@ -21,7 +21,9 @@
            #:snd
            #:tail
            #:key!
-           #:key))
+           #:key
+           #:key?!
+           #:key?))
 
 (in-package #:spotlight)
 
@@ -257,3 +259,46 @@ Immutable variant of key! function."
     (:hash-table (key-hash-table k))
     (:alist (key-alist k))
     (:plist (key-plist k))))
+
+(defun key-getter (k)
+  "Provide a getter function for accessing either
+a hash-table, association list, or property list.
+Uses reflection to determine the collection type."
+  (lambda (state)
+    (typecase state
+      (hash-table
+       (funcall (hash-table-getter k) state))
+      (list
+       (if (consp (car state))
+           (funcall (alist-getter k) state)
+           (funcall (plist-getter k) state))))))
+
+(defun key?! (k)
+  "Provide a lens focusing on the given key of either
+a hash-table, association list, or property list.
+Uses reflection to determine the collection type.
+Mutable variant of key? function."
+  (lens (key-getter k)
+        (lambda (state fn)
+          (typecase state
+            (hash-table
+             (funcall (hash-table-setter! k) state fn))
+            (list
+             (if (consp (car state))
+                 (funcall (alist-setter! k) state fn)
+                 (funcall (plist-setter! k) state fn)))))))
+
+(defun key? (k)
+  "Provide a lens focusing on the given key of either
+a hash-table, association list, or property list.
+Uses reflection to determine the collection type.
+Immutable variant of key?! function."
+  (lens (key-getter k)
+        (lambda (state fn)
+          (typecase state
+            (hash-table
+             (funcall (hash-table-setter k) state fn))
+            (list
+             (if (consp (car state))
+                 (funcall (alist-setter k) state fn)
+                 (funcall (plist-setter k) state fn)))))))
